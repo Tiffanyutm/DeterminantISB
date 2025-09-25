@@ -748,7 +748,7 @@ newdat_m1j$Level <- factor(newdat_m1j$Level, levels = c("fit.1","fit.2", "fit.5"
 pp_j <- ggplot(newdat_m1j, aes(fill = Level, y = Percent, x = JURISDICTION )) +
   geom_bar(position = "stack", stat = "identity") +
   labs(
-    x = "Education Level",
+    x = "Jurisdiction",
     y = "Predicted Probability",
   ) +
   coord_flip() +
@@ -1007,3 +1007,4 @@ ggsave("pp_q3m2.pdf", pp_q3m2,
        height = 6.5,
 
        dpi = 300)
+
