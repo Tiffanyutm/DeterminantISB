@@ -3,11 +3,12 @@
 # [3] Venables, W. N. & Ripley, B. D. (2002) Modern Applied Statistics with S. Fourth Edition. Springer, New York. ISBN 0-387-95457-0
 # [4] Iannone R, Cheng J, Schloerke B, Hughes E, Lauer A, Seo J, Brevoort K, Roy O (2024). _gt: Easily Create Presentation-Ready Display Tables_. R package version 0.11.1, <https://CRAN.R-project.org/package=gt>.
 # [5] Sjoberg DD, Whiting K, Curry M, Lavery JA, Larmarange J. Reproducible summary tables with the gtsummary package. The R Journal 2021;13:570–80. <https://doi.org/10.32614/RJ-2021-053>.
-# [6] UCLA: Statistical Consulting Group (2024). Ordinal logistic regression | R data analysis. UCLA Advanced Research Computing Statistical Methods and Data Analytics, <https://stats.oarc.ucla.edu/r/dae/ordinal-logistic-regression/examples>
-# [7] Christensen R (2023). _ordinal-Regression Models for Ordinal Data_. R package version 2023.12-4.1, <https://CRAN.R-project.org/package=ordinal>.
-# [8] Arnold J (2024). _ggthemes: Extra Themes, Scales and Geoms for 'ggplot2'_. R package version 5.1.0, <https://CRAN.R-project.org/package=ggthemes>.
-# [9] Hadley Wickham (2007). Reshaping Data with the reshape Package. Journal of Statistical Software, 21(12), 1-20. URL http://www.jstatsoft.org/v21/i12/.
-# [10] Stauffer R, Mayr GJ, Dabernig M, Zeileis A (2009). “Somewhere over the Rainbow: How to Make Effective Use of Colors in Meteorological Visualizations.” _Bulletin of the American Meteorological Society_, *96*(2), 203-216. doi:10.1175/BAMS-D-13-00155.1 <https://doi.org/10.1175/BAMS-D-13-00155.1>.
+# [6] Ugba E (2022). _gofcat: Goodness-of-Fit Measures for Categorical Response Models_. R package version 0.1.2, <https://CRAN.R-project.org/package=gofcat>.
+# [7] UCLA: Statistical Consulting Group (2024). Ordinal logistic regression | R data analysis. UCLA Advanced Research Computing Statistical Methods and Data Analytics, <https://stats.oarc.ucla.edu/r/dae/ordinal-logistic-regression/examples>
+# [8] Christensen R (2023). _ordinal-Regression Models for Ordinal Data_. R package version 2023.12-4.1, <https://CRAN.R-project.org/package=ordinal>.
+# [9] Arnold J (2024). _ggthemes: Extra Themes, Scales and Geoms for 'ggplot2'_. R package version 5.1.0, <https://CRAN.R-project.org/package=ggthemes>.
+# [10] Hadley Wickham (2007). Reshaping Data with the reshape Package. Journal of Statistical Software, 21(12), 1-20. URL http://www.jstatsoft.org/v21/i12/.
+# [11] Stauffer R, Mayr GJ, Dabernig M, Zeileis A (2009). “Somewhere over the Rainbow: How to Make Effective Use of Colors in Meteorological Visualizations.” _Bulletin of the American Meteorological Society_, *96*(2), 203-216. doi:10.1175/BAMS-D-13-00155.1 <https://doi.org/10.1175/BAMS-D-13-00155.1>.
 
 library(tidyverse) #[1]
 
@@ -397,6 +398,7 @@ library(MASS) # [3]
 library(tidyverse) # [1]
 library(gt) # [4]
 library(gtsummary) # [5]
+library(gofcaf) # [6]
 
 # import cleaned data
 survey <- read_csv("Cleaned_numbers_2024_ICJ_Telephone_Poll.csv")
@@ -420,7 +422,7 @@ survey$D4 <- factor(survey$D4, levels = c(1,2,3,4,5,6,7))
 survey$D5 <- factor(survey$D5, levels = c(2,1,3))
 survey$Q19 <- factor(survey$Q19)
 
-# UCLA: Statistical Consulting Group Ordinal logistic regression [6] 
+# UCLA: Statistical Consulting Group Ordinal logistic regression [7] 
 # univariable ordinal regression models
 mQ_JURISDICTION <- polr(Q19 ~ JURISDICTION, data = survey, Hess = TRUE)
 mQ_BASIN <- polr(Q19 ~ BASIN, data = survey, Hess = TRUE)
@@ -527,7 +529,7 @@ mD4 %>%
 mD5 %>%
   tbl_regression(exponentiate = TRUE)
 
-library(ordinal) # [7]
+library(ordinal) # [8]
 
 # adjusted models
 surveym1 <- survey[,c(1,2,3,9,10,11,12,13)] # subset data for model 1
@@ -580,9 +582,9 @@ m2 <- clm(Q19 ~ Q3 + Q4 + Q6A + Q9 + Q10B + Q18_B + Q18_swimming + Q18_fishing +
 anova(m2_n, m2) # likelihood profile test - significant difference
 anova(m2_e, m2) # significant difference
 
-library(ggthemes) # [8]
-library(reshape2) # [9]
-library(colorspace) # [10]
+library(ggthemes) # [9]
+library(reshape2) # [10]
+library(colorspace) # [11]
 
 # UCLA: Statistical Consulting Group Ordinal logistic regression [6] 
 # New Values for Predictions Age (D1) - Constant at Reference Levels
@@ -606,20 +608,51 @@ newdata_d1 <- data.frame(
 predicted_probs_d1 <- cbind(newdata_d1, predict(m1, newdata_d1, type = "prob"))
 
 newdat_m1d1 <- melt(predicted_probs_d1, id.vars = c("D1", "D2", "D4", "D5","JURISDICTION", "BASIN"), variable.name = "Level", value.name="Probability") # reshape the data
+glimpse(newdat_m1d1)
 
-pp_D1 <- ggplot(newdat_m1d1, aes(fill = Level, y = Probability, x = D1 )) +
+newdat_m1d1$Probability[newdat_m1d1$Level == "fit.3"] <- newdat_m1d1$Probability[newdat_m1d1$Level == "fit.3"] / 2 # divide sometimes value into 2
+m1d1_duplicate <- newdat_m1d1[newdat_m1d1$Level == "fit.3", ] # duplicate "sometimes" rows
+newdat_m1d1$Probability[newdat_m1d1$Level == "fit.1"] <- newdat_m1d1$Probability[newdat_m1d1$Level == "fit.1"] * -1 # multiple by -1 for negative behaviours
+newdat_m1d1$Probability[newdat_m1d1$Level == "fit.2"] <- newdat_m1d1$Probability[newdat_m1d1$Level == "fit.2"] * -1
+newdat_m1d1$Probability[newdat_m1d1$Level == "fit.3"] <- newdat_m1d1$Probability[newdat_m1d1$Level == "fit.3"] * -1
+newdat_m1d1 <- rbind(newdat_m1d1, m1d1_duplicate) # combine data sets
+newdat_m1d1$Percent <- newdat_m1d1$Probability * 100 # Get percent labels
+newdat_m1d1$Percent2 <- newdat_m1d1$Percent[newdat_m1d1$Percent <= 0] * -1 # Make labels not negative
+newdat_m1d1$Percent2 <- round(newdat_m1d1$Percent2)
+
+newdat_m1d1$Level <- factor(newdat_m1d1$Level, levels = c("fit.1","fit.2", "fit.5","fit.4","fit.3"))
+
+ord_colours <- c("fit.1" = "#533602", 
+               "fit.2" = "#c9a36d", 
+               "fit.3" = "#f6f6f6",
+               "fit.4" = "#34bdaf",
+               "fit.5" = "#004b40")
+
+label_colours <- c("fit.1" = "white", 
+                   "fit.2" = "black", 
+                   "fit.3" = "black",
+                   "fit.4" = "black",
+                   "fit.5" = "white")
+
+pp_D1 <- ggplot(newdat_m1d1, aes(fill = Level, y = Percent, x = D1 )) +
   geom_bar(position = "stack", stat = "identity") +
   labs(
     x = "Age Range",
     y = "Predicted Probability",
-    color = "Level",
-    shape = "Level"
   ) +
+  coord_flip() +
   scale_x_discrete(labels = c("18-34", "35-44", "45-54", "55+")) + # plot the data
-  scale_fill_discrete_diverging("Green-Brown", labels = c("Never", "Rarely", "Sometimes", "Most of the Time", "Always"),
-                                rev = TRUE,
-                                guide = guide_legend(reverse = TRUE))
-  
+  scale_fill_manual(values = ord_colours, 
+                    breaks = c("fit.5", "fit.4", "fit.3", "fit.2", "fit.1"),
+                    labels = c("Always", "Most of the Time", "Sometimes", "Rarely", "Never")) +
+  scale_color_manual(values = label_colours, guide = "none" ) +
+  scale_y_continuous(breaks = c(-50, 0, 50),
+                     labels = c("50%","0%","50%")) +
+  geom_hline(yintercept = 0) +
+  geom_text(aes(label = paste0(Percent2, "%"), color = Level),
+            size = 3,
+            position = position_stack(vjust = 0.5))
+
 # Repeat for Education (D2) 
 # New Values for Predictions - Constant at Reference Levels
 d2m1_d1 <- levels(surveym1$D1)[1] # reference level 
@@ -643,19 +676,38 @@ predicted_probs_d2 <- cbind(newdata_d2, predict(m1, newdata_d2, type = "prob"))
 
 newdat_m1d2 <- melt(predicted_probs_d2, id.vars = c("D1", "D2", "D4", "D5","JURISDICTION", "BASIN"), variable.name = "Level", value.name="Probability") # reshape the data
 
-pp_D2 <- ggplot(newdat_m1d2, aes(fill = Level, y = Probability, x = D2 )) +
+newdat_m1d2$Probability[newdat_m1d2$Level == "fit.3"] <- newdat_m1d2$Probability[newdat_m1d2$Level == "fit.3"] / 2 # divide sometimes value into 2
+m1d2_duplicate <- newdat_m1d2[newdat_m1d2$Level == "fit.3", ] # duplicate "sometimes" rows
+newdat_m1d2$Probability[newdat_m1d2$Level == "fit.1"] <- newdat_m1d2$Probability[newdat_m1d2$Level == "fit.1"] * -1 # multiple by -1 for negative behaviours
+newdat_m1d2$Probability[newdat_m1d2$Level == "fit.2"] <- newdat_m1d2$Probability[newdat_m1d2$Level == "fit.2"] * -1
+newdat_m1d2$Probability[newdat_m1d2$Level == "fit.3"] <- newdat_m1d2$Probability[newdat_m1d2$Level == "fit.3"] * -1
+newdat_m1d2 <- rbind(newdat_m1d2, m1d2_duplicate) # combine data sets
+newdat_m1d2$Percent <- newdat_m1d2$Probability * 100 # Get percent labels
+newdat_m1d2$Percent2 <- newdat_m1d2$Percent[newdat_m1d2$Percent <= 0] * -1 # Make labels not negative
+newdat_m1d2$Percent2 <- round(newdat_m1d2$Percent2)
+
+newdat_m1d2$Level <- factor(newdat_m1d2$Level, levels = c("fit.1","fit.2", "fit.5","fit.4","fit.3"))
+
+pp_D2 <- ggplot(newdat_m1d2, aes(fill = Level, y = Percent, x = D2 )) +
   geom_bar(position = "stack", stat = "identity") +
   labs(
     x = "Education Level",
     y = "Predicted Probability",
-    color = "Level",
-    shape = "Level"
   ) +
+  coord_flip() +
   scale_x_discrete(labels = c("Some high school or less", "Graduated High school", "Some post secondary", "Graduated university / college")) + # plot the data
-  scale_fill_discrete_diverging("Green-Brown", labels = c("Never", "Rarely", "Sometimes", "Most of the Time", "Always"),
-                                rev = TRUE,
-                                guide = guide_legend(reverse = TRUE))
-pp_D2 <- pp_D2 + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  scale_fill_manual(values = ord_colours, 
+                    breaks = c("fit.5", "fit.4", "fit.3", "fit.2", "fit.1"),
+                    labels = c("Always", "Most of the Time", "Sometimes", "Rarely", "Never")) +
+  scale_color_manual(values = label_colours, guide = "none" ) +
+  scale_y_continuous(breaks = c(-50, 0, 50),
+                     labels = c("50%","0%","50%")) +
+  geom_hline(yintercept = 0) +
+  geom_text(aes(label = paste0(Percent2, "%"), color = Level),
+            size = 3,
+            position = position_stack(vjust = 0.5))
+
+
 
 
 # Repeat for JURISDICTION 
@@ -681,19 +733,37 @@ predicted_probs_j <- cbind(newdata_j, predict(m1, newdata_j, type = "prob"))
 
 newdat_m1j <- melt(predicted_probs_j, id.vars = c("D1", "D2", "D4", "D5","JURISDICTION", "BASIN"), variable.name = "Level", value.name="Probability") # reshape the data
 
-pp_j <- ggplot(newdat_m1j, aes(fill = Level, y = Probability, x = JURISDICTION )) +
+newdat_m1j$Probability[newdat_m1j$Level == "fit.3"] <- newdat_m1j$Probability[newdat_m1j$Level == "fit.3"] / 2 # divide sometimes value into 2
+m1j_duplicate <- newdat_m1j[newdat_m1j$Level == "fit.3", ] # duplicate "sometimes" rows
+newdat_m1j$Probability[newdat_m1j$Level == "fit.1"] <- newdat_m1j$Probability[newdat_m1j$Level == "fit.1"] * -1 # multiple by -1 for negative behaviours
+newdat_m1j$Probability[newdat_m1j$Level == "fit.2"] <- newdat_m1j$Probability[newdat_m1j$Level == "fit.2"] * -1
+newdat_m1j$Probability[newdat_m1j$Level == "fit.3"] <- newdat_m1j$Probability[newdat_m1j$Level == "fit.3"] * -1
+newdat_m1j <- rbind(newdat_m1j, m1j_duplicate) # combine data sets
+newdat_m1j$Percent <- newdat_m1j$Probability * 100 # Get percent labels
+newdat_m1j$Percent2 <- newdat_m1j$Percent[newdat_m1j$Percent <= 0] * -1 # Make labels not negative
+newdat_m1j$Percent2 <- round(newdat_m1j$Percent2)
+
+newdat_m1j$Level <- factor(newdat_m1j$Level, levels = c("fit.1","fit.2", "fit.5","fit.4","fit.3"))
+
+pp_j <- ggplot(newdat_m1j, aes(fill = Level, y = Percent, x = JURISDICTION )) +
   geom_bar(position = "stack", stat = "identity") +
   labs(
-    x = "Jurisdiction (State/Province)",
+    x = "Education Level",
     y = "Predicted Probability",
-    color = "Level",
-    shape = "Level"
   ) +
+  coord_flip() +
   scale_x_discrete(labels = c("Ontario", "Illinois", "Indiana", "Michigan", "Minnesota", "New York", "Ohio", "Pennsylvania", "Wisconsin")) + # plot the data
-  scale_fill_discrete_diverging("Green-Brown", labels = c("Never", "Rarely", "Sometimes", "Most of the Time", "Always"),
-                                rev = TRUE,
-                                guide = guide_legend(reverse = TRUE))
-pp_j <- pp_j + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  scale_fill_manual(values = ord_colours, 
+                    breaks = c("fit.5", "fit.4", "fit.3", "fit.2", "fit.1"),
+                    labels = c("Always", "Most of the Time", "Sometimes", "Rarely", "Never")) +
+  scale_color_manual(values = label_colours, guide = "none" ) +
+  scale_y_continuous(breaks = c(-50, 0, 50),
+                     labels = c("50%","0%","50%")) +
+  geom_hline(yintercept = 0) +
+  geom_text(aes(label = paste0(Percent2, "%"), color = Level),
+            size = 3,
+            position = position_stack(vjust = 0.5))
+
 
 # Repeat for BASIN
 # New Values for Predictions - Constant at Reference Levels
@@ -832,8 +902,8 @@ newdata_bbm2 <- data.frame(
 predicted_probs_bbm2 <- cbind(newdata_bbm2, predict(m2, newdata_bbm2, type = "prob"))
 
 newdat_bbm2 <- melt(predicted_probs_bbm2, id.vars = c("D1", "D2", "D4", "D5","JURISDICTION", "BASIN", 
-                                                    "Q3", "Q4", "Q6A", "Q9", "Q10B",
-                                                    "Q18_B","Q18_swimming", "Q18_boating", "Q18_boarding", "Q18_fishing"), variable.name = "Level", value.name="Probability") # reshape the data
+                                                      "Q3", "Q4", "Q6A", "Q9", "Q10B",
+                                                      "Q18_B","Q18_swimming", "Q18_boating", "Q18_boarding", "Q18_fishing"), variable.name = "Level", value.name="Probability") # reshape the data
 
 pp_bbm2 <- ggplot(newdat_bbm2, aes(fill = Level, y = Probability, x = Q18_boating)) +
   geom_bar(position = "stack", stat = "identity") +
@@ -895,7 +965,7 @@ newdat_q3m2 <- melt(predicted_probs_q3m2, id.vars = c("D1", "D2", "D4", "D5","JU
 
 pp_q3m2 <- ggplot(newdat_q3m2, aes(fill = Level, y = Probability, x = Q3)) +
   geom_bar(position = "stack", stat = "identity") +
-   labs(
+  labs(
     x = "Water Quality Rating",
     y = "Predicted Probability",
     color = "Level",
@@ -906,7 +976,6 @@ pp_q3m2 <- ggplot(newdat_q3m2, aes(fill = Level, y = Probability, x = Q3)) +
                                 rev = TRUE,
                                 guide = guide_legend(reverse = TRUE))
 pp_q3m2 <- pp_q3m2 + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
 
 # Export plots
 ggsave("pp_b.pdf", pp_b,
@@ -936,4 +1005,5 @@ ggsave("pp_j.pdf", pp_j,
 ggsave("pp_q3m2.pdf", pp_q3m2,
        width = 6,
        height = 6.5,
+
        dpi = 300)
