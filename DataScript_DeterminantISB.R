@@ -920,62 +920,43 @@ pp_bbm2 <- ggplot(newdat_bbm2, aes(fill = Level, y = Probability, x = Q18_boatin
 
 # Repeat for Q3 Water Quality Rating
 # New Values for Predictions - Constant at Reference Levels
-q3m2_d1 <- levels(survey$D1)[1] # reference level 
-q3m2_d2 <- levels(survey$D2)[1] # reference level 
-q3m2_d4 <- levels(survey$D4)[1] # reference level
-q3m2_d5 <- levels(survey$D5)[1] # reference level
-q3m2_jurisdiction <- levels(survey$JURISDICTION)[1] # reference level
-q3m2_basin <- levels(survey$BASIN)[1] # reference level
-q3m2_q3 <- unique(survey$Q3) # reference level 
-q3m2_q4 <- levels(survey$Q4)[1] # reference level 
-q3m2_q6 <- levels(survey$Q6A)[1] # reference level
-q3m2_q9 <- levels(survey$Q9)[1] # reference level 
-q3m2_q10 <- levels(survey$Q10B)[1] # reference level
-q3m2_q18b <- levels(survey$Q18_B)[1] # reference level
-q3m2_q18s <- levels(survey$Q18_swimming)[1] # reference level
-q3m2_q18bb <- levels(survey$Q18_boating)[1] # reference level
-q3m2_q18w <- levels(survey$Q18_boarding)[1] # reference level
-q3m2_q18f <- levels(survey$Q18_fishing)[1] # reference level
-
-newdata_q3m2 <- data.frame(
-  D1 = factor(rep(q3m2_d1, length(q3m2_q3)), levels = levels(survey$D1)),
-  D2 = factor(rep(q3m2_d2, length(q3m2_q3)), levels = levels(survey$D2)),
-  D4 = factor(rep(q3m2_d4, length(q3m2_q3)), levels = levels(survey$D4)),
-  D5 = factor(rep(q3m2_d5, length(q3m2_q3)), levels = levels(survey$D5)),
-  JURISDICTION = factor(rep(q3m2_jurisdiction, length(q3m2_q3)), levels = levels(survey$JURISDICTION)),
-  BASIN = factor(rep(q3m2_basin, length(q3m2_q3)), levels = levels(survey$BASIN)), 
-  Q3 = q3m2_q3,
-  Q4 = factor(rep(q3m2_q4, length(q3m2_q3)), levels = levels(survey$Q4)),
-  Q6A = factor(rep(q3m2_q6, length(q3m2_q3)), levels = levels(survey$Q6A)),
-  Q9 = factor(rep(q3m2_q9, length(q3m2_q3)), levels = levels(survey$Q9)),
-  Q10B = factor(rep(q3m2_q10, length(q3m2_q3)), levels = levels(survey$Q10B)),
-  Q18_B = factor(rep(q3m2_q18b, length(q3m2_q3)), levels = levels(survey$Q18_B)),
-  Q18_swimming = factor(rep(q3m2_q18s, length(q3m2_q3)), levels = levels(survey$Q18_swimming)),
-  Q18_boating = factor(rep(q3m2_q18bb, length(q3m2_q3)), levels = levels(survey$Q18_boating)),
-  Q18_boarding = factor(rep(q3m2_q18w, length(q3m2_q3)), levels = levels(survey$Q18_boarding)),
-  Q18_fishing = factor(rep(q3m2_q18f, length(q3m2_q3)), levels = levels(survey$Q18_fishing))
-) # new data set
-
-# predicted probabilities Q3
 predicted_probs_q3m2 <- cbind(newdata_q3m2, predict(m2, newdata_q3m2, type = "prob"))
 
 newdat_q3m2 <- melt(predicted_probs_q3m2, id.vars = c("D1", "D2", "D4", "D5","JURISDICTION", "BASIN", 
                                                       "Q3", "Q4", "Q6A", "Q9", "Q10B",
                                                       "Q18_B","Q18_swimming", "Q18_boating", "Q18_boarding", "Q18_fishing"), variable.name = "Level", value.name="Probability") # reshape the data
 
+
+newdat_q3m2$Probability[newdat_q3m2$Level == "fit.3"] <- newdat_q3m2$Probability[newdat_q3m2$Level == "fit.3"] / 2 # divide sometimes value into 2
+q3m2_duplicate <- newdat_q3m2[newdat_q3m2$Level == "fit.3", ] # duplicate "sometimes" rows
+newdat_q3m2$Probability[newdat_q3m2$Level == "fit.1"] <- newdat_q3m2$Probability[newdat_q3m2$Level == "fit.1"] * -1 # multiple by -1 for negative behaviours
+newdat_q3m2$Probability[newdat_q3m2$Level == "fit.2"] <- newdat_q3m2$Probability[newdat_q3m2$Level == "fit.2"] * -1
+newdat_q3m2$Probability[newdat_q3m2$Level == "fit.3"] <- newdat_q3m2$Probability[newdat_q3m2$Level == "fit.3"] * -1
+newdat_q3m2 <- rbind(newdat_q3m2, q3m2_duplicate) # combine data sets
+newdat_q3m2$Percent <- newdat_q3m2$Probability * 100 # Get percent labels
+newdat_q3m2$Percent <- with(newdat_q3m2, ifelse(Percent <= 0, Percent * -1, Percent * 1)) # Make labels not negative
+newdat_q3m2$Percent <- round(newdat_q3m2$Percent)
+
+newdat_q3m2$Level <- factor(newdat_q3m2$Level, levels = c("fit.1","fit.2", "fit.5","fit.4","fit.3"))
+
 pp_q3m2 <- ggplot(newdat_q3m2, aes(fill = Level, y = Probability, x = Q3)) +
   geom_bar(position = "stack", stat = "identity") +
   labs(
     x = "Water Quality Rating",
     y = "Predicted Probability",
-    color = "Level",
-    shape = "Level"
   ) +
+  coord_flip() +
   scale_x_discrete(labels = c("Very poor","Poor","Neither poor nor good","Good","Very good")) + # plot the data
-  scale_fill_discrete_diverging("Green-Brown", labels = c("Never", "Rarely", "Sometimes", "Most of the Time", "Always"),
-                                rev = TRUE,
-                                guide = guide_legend(reverse = TRUE))
-pp_q3m2 <- pp_q3m2 + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  scale_fill_manual(values = ord_colours, 
+                    breaks = c("fit.5", "fit.4", "fit.3", "fit.2", "fit.1"),
+                    labels = c("Always", "Most of the Time", "Sometimes", "Rarely", "Never")) +
+  scale_color_manual(values = label_colours, guide = "none" ) +
+  scale_y_continuous(breaks = c(-0.3, 0, 0.3, 0.6),
+                     labels = c("30%","0%","30%", "60%")) +
+  geom_hline(yintercept = 0) +
+  geom_text(aes(label = paste0(Percent, "%"), color = Level),
+            size = 3,
+            position = position_stack(vjust = 0.5))
 
 # Export plots
 ggsave("pp_b.pdf", pp_b,
@@ -1007,4 +988,5 @@ ggsave("pp_q3m2.pdf", pp_q3m2,
        height = 6.5,
 
        dpi = 300)
+
 
