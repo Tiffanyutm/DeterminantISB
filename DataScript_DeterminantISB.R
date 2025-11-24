@@ -799,19 +799,24 @@ newdat_m1b$Percent2 <- round(newdat_m1b$Percent2)
 
 newdat_m1b$Level <- factor(newdat_m1b$Level, levels = c("fit.1","fit.2", "fit.5","fit.4","fit.3"))
 
-pp_b <- ggplot(newdat_m1b, aes(fill = Level, y = Probability, x = BASIN)) +
+pp_b <- ggplot(newdat_m1b, aes(fill = Level, y = Percent, x = BASIN )) +
   geom_bar(position = "stack", stat = "identity") +
   labs(
-    x = "Closest Lake",
+    x = "Closest Great Lake",
     y = "Predicted Probability",
-    color = "Level",
-    shape = "Level"
   ) +
+  coord_flip() +
   scale_x_discrete(labels = c("Erie", "Superior","Michigan","Huron","Ontario")) + # plot the data
-  scale_fill_discrete_diverging("Green-Brown", labels = c("Never", "Rarely", "Sometimes", "Most of the Time", "Always"),
-                                rev = TRUE,
-                                guide = guide_legend(reverse = TRUE))
-pp_b <- pp_b + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  scale_fill_manual(values = ord_colours, 
+                    breaks = c("fit.5", "fit.4", "fit.3", "fit.2", "fit.1"),
+                    labels = c("Always", "Most of the Time", "Sometimes", "Rarely", "Never")) +
+  scale_color_manual(values = label_colours, guide = "none" ) +
+  scale_y_continuous(breaks = c(-50, 0, 50),
+                     labels = c("50%","0%","50%")) +
+  geom_hline(yintercept = 0) +
+  geom_text(aes(label = paste0(Percent2, "%"), color = Level),
+            size = 3,
+            position = position_stack(vjust = 0.5))
 
 # Repeat for Q18_B Engagement in Water Recreation
 # New Values for Predictions - Constant at Reference Levels
@@ -1035,6 +1040,7 @@ ggsave("pp_q3m2.pdf", pp_q3m2,
        height = 6.5,
 
        dpi = 300)
+
 
 
 
