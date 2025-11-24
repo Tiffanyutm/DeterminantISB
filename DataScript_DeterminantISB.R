@@ -787,6 +787,17 @@ newdata_b <- data.frame(
 predicted_probs_b <- cbind(newdata_b, predict(m1, newdata_b, type = "prob"))
 
 newdat_m1b <- melt(predicted_probs_b, id.vars = c("D1", "D2", "D4", "D5","JURISDICTION", "BASIN"), variable.name = "Level", value.name="Probability") # reshape the data
+newdat_m1b$Probability[newdat_m1b$Level == "fit.3"] <- newdat_m1b$Probability[newdat_m1b$Level == "fit.3"] / 2 # divide sometimes value into 2
+m1b_duplicate <- newdat_m1b[newdat_m1b$Level == "fit.3", ] # duplicate "sometimes" rows
+newdat_m1b$Probability[newdat_m1b$Level == "fit.1"] <- newdat_m1b$Probability[newdat_m1b$Level == "fit.1"] * -1 # multiple by -1 for negative behaviours
+newdat_m1b$Probability[newdat_m1b$Level == "fit.2"] <- newdat_m1b$Probability[newdat_m1b$Level == "fit.2"] * -1
+newdat_m1b$Probability[newdat_m1b$Level == "fit.3"] <- newdat_m1b$Probability[newdat_m1b$Level == "fit.3"] * -1
+newdat_m1b <- rbind(newdat_m1b, m1b_duplicate) # combine data sets
+newdat_m1b$Percent <- newdat_m1b$Probability * 100 # Get percent labels
+newdat_m1b$Percent2 <- newdat_m1b$Percent[newdat_m1b$Percent <= 0] * -1 # Make labels not negative
+newdat_m1b$Percent2 <- round(newdat_m1b$Percent2)
+
+newdat_m1b$Level <- factor(newdat_m1b$Level, levels = c("fit.1","fit.2", "fit.5","fit.4","fit.3"))
 
 pp_b <- ggplot(newdat_m1b, aes(fill = Level, y = Probability, x = BASIN)) +
   geom_bar(position = "stack", stat = "identity") +
@@ -1024,6 +1035,7 @@ ggsave("pp_q3m2.pdf", pp_q3m2,
        height = 6.5,
 
        dpi = 300)
+
 
 
 
