@@ -398,7 +398,7 @@ library(MASS) # [3]
 library(tidyverse) # [1]
 library(gt) # [4]
 library(gtsummary) # [5]
-library(gofcaf) # [6]
+library(gofcat) # [6]
 
 # import cleaned data
 survey <- read_csv("Cleaned_numbers_2024_ICJ_Telephone_Poll.csv")
@@ -920,6 +920,42 @@ pp_bbm2 <- ggplot(newdat_bbm2, aes(fill = Level, y = Probability, x = Q18_boatin
 
 # Repeat for Q3 Water Quality Rating
 # New Values for Predictions - Constant at Reference Levels
+q3m2_d1 <- levels(survey$D1)[1] # reference level 
+q3m2_d2 <- levels(survey$D2)[1] # reference level 
+q3m2_d4 <- levels(survey$D4)[1] # reference level
+q3m2_d5 <- levels(survey$D5)[1] # reference level
+q3m2_jurisdiction <- levels(survey$JURISDICTION)[1] # reference level
+q3m2_basin <- levels(survey$BASIN)[1] # reference level
+q3m2_q3 <- unique(survey$Q3)  # reference level 
+q3m2_q4 <- levels(survey$Q4)[1] # reference level 
+q3m2_q6 <- levels(survey$Q6A)[1] # reference level
+q3m2_q9 <- levels(survey$Q9)[1] # reference level 
+q3m2_q10 <- levels(survey$Q10B)[1] # reference level
+q3m2_q18b <- levels(survey$Q18_B)[1] # reference level
+q3m2_q18s <- levels(survey$Q18_swimming)[1] # reference level
+q3m2_q18bb <-levels(survey$Q18_boating) # reference level
+q3m2_q18w <- levels(survey$Q18_boarding)[1] # reference level
+q3m2_q18f <- levels(survey$Q18_fishing)[1] # reference level
+
+newdata_q3m2 <- data.frame(
+  D1 = factor(rep(q3m2_d1, length(q3m2_q3)), levels = levels(survey$D1)),
+  D2 = factor(rep(q3m2_d2, length(q3m2_q3)), levels = levels(survey$D2)),
+  D4 = factor(rep(q3m2_d4, length(q3m2_q3)), levels = levels(survey$D4)),
+  D5 = factor(rep(q3m2_d5, length(q3m2_q3)), levels = levels(survey$D5)),
+  JURISDICTION = factor(rep(q3m2_jurisdiction, length(q3m2_q3)), levels = levels(survey$JURISDICTION)),
+  BASIN = factor(rep(q3m2_basin, length(q3m2_q3)), levels = levels(survey$BASIN)), 
+  Q3 = q3m2_q3,
+  Q4 = factor(rep(q3m2_q4, length(q3m2_q3)), levels = levels(survey$Q4)),
+  Q6A = factor(rep(q3m2_q6, length(q3m2_q3)), levels = levels(survey$Q6A)),
+  Q9 = factor(rep(q3m2_q9, length(q3m2_q3)), levels = levels(survey$Q9)),
+  Q10B = factor(rep(q3m2_q10, length(q3m2_q3)), levels = levels(survey$Q10B)),
+  Q18_B = factor(rep(q3m2_q18b, length(q3m2_q3)), levels = levels(survey$Q18_B)),
+  Q18_swimming = factor(rep(q3m2_q18s, length(q3m2_q3)), levels = levels(survey$Q18_swimming)),
+  Q18_boating = factor(rep(q3m2_q18w, length(q3m2_q3)), levels = levels(survey$Q18_boarding)),
+  Q18_boarding = factor(rep(q3m2_q18w, length(q3m2_q3)), levels = levels(survey$Q18_boating)),
+  Q18_fishing = factor(rep(q3m2_q18f, length(q3m2_q3)), levels = levels(survey$Q18_fishing))
+) # new data set
+
 predicted_probs_q3m2 <- cbind(newdata_q3m2, predict(m2, newdata_q3m2, type = "prob"))
 
 newdat_q3m2 <- melt(predicted_probs_q3m2, id.vars = c("D1", "D2", "D4", "D5","JURISDICTION", "BASIN", 
@@ -988,5 +1024,6 @@ ggsave("pp_q3m2.pdf", pp_q3m2,
        height = 6.5,
 
        dpi = 300)
+
 
 
