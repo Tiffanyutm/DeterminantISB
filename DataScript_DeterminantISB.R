@@ -617,16 +617,16 @@ newdat_m1d1$Probability[newdat_m1d1$Level == "fit.2"] <- newdat_m1d1$Probability
 newdat_m1d1$Probability[newdat_m1d1$Level == "fit.3"] <- newdat_m1d1$Probability[newdat_m1d1$Level == "fit.3"] * -1
 newdat_m1d1 <- rbind(newdat_m1d1, m1d1_duplicate) # combine data sets
 newdat_m1d1$Percent <- newdat_m1d1$Probability * 100 # Get percent labels
-newdat_m1d1$Percent2 <- newdat_m1d1$Percent[newdat_m1d1$Percent <= 0] * -1 # Make labels not negative
+newdat_m1d1$Percent2 <- abs(newdat_m1d1$Percent) # Make labels not negative
 newdat_m1d1$Percent2 <- round(newdat_m1d1$Percent2)
 
 newdat_m1d1$Level <- factor(newdat_m1d1$Level, levels = c("fit.1","fit.2", "fit.5","fit.4","fit.3"))
 
 ord_colours <- c("fit.1" = "#533602", 
-               "fit.2" = "#c9a36d", 
-               "fit.3" = "#f6f6f6",
-               "fit.4" = "#34bdaf",
-               "fit.5" = "#004b40")
+                 "fit.2" = "#c9a36d", 
+                 "fit.3" = "#f6f6f6",
+                 "fit.4" = "#34bdaf",
+                 "fit.5" = "#004b40")
 
 label_colours <- c("fit.1" = "white", 
                    "fit.2" = "black", 
@@ -683,7 +683,7 @@ newdat_m1d2$Probability[newdat_m1d2$Level == "fit.2"] <- newdat_m1d2$Probability
 newdat_m1d2$Probability[newdat_m1d2$Level == "fit.3"] <- newdat_m1d2$Probability[newdat_m1d2$Level == "fit.3"] * -1
 newdat_m1d2 <- rbind(newdat_m1d2, m1d2_duplicate) # combine data sets
 newdat_m1d2$Percent <- newdat_m1d2$Probability * 100 # Get percent labels
-newdat_m1d2$Percent2 <- newdat_m1d2$Percent[newdat_m1d2$Percent <= 0] * -1 # Make labels not negative
+newdat_m1d2$Percent2 <- abs(newdat_m1d2$Percent) # Make labels not negative
 newdat_m1d2$Percent2 <- round(newdat_m1d2$Percent2)
 
 newdat_m1d2$Level <- factor(newdat_m1d2$Level, levels = c("fit.1","fit.2", "fit.5","fit.4","fit.3"))
@@ -706,9 +706,6 @@ pp_D2 <- ggplot(newdat_m1d2, aes(fill = Level, y = Percent, x = D2 )) +
   geom_text(aes(label = paste0(Percent2, "%"), color = Level),
             size = 3,
             position = position_stack(vjust = 0.5))
-
-
-
 
 # Repeat for JURISDICTION 
 # New Values for Predictions - Constant at Reference Levels
@@ -740,7 +737,7 @@ newdat_m1j$Probability[newdat_m1j$Level == "fit.2"] <- newdat_m1j$Probability[ne
 newdat_m1j$Probability[newdat_m1j$Level == "fit.3"] <- newdat_m1j$Probability[newdat_m1j$Level == "fit.3"] * -1
 newdat_m1j <- rbind(newdat_m1j, m1j_duplicate) # combine data sets
 newdat_m1j$Percent <- newdat_m1j$Probability * 100 # Get percent labels
-newdat_m1j$Percent2 <- newdat_m1j$Percent[newdat_m1j$Percent <= 0] * -1 # Make labels not negative
+newdat_m1j$Percent2 <- abs(newdat_m1j$Percent) # Make labels not negative
 newdat_m1j$Percent2 <- round(newdat_m1j$Percent2)
 
 newdat_m1j$Level <- factor(newdat_m1j$Level, levels = c("fit.1","fit.2", "fit.5","fit.4","fit.3"))
@@ -764,7 +761,6 @@ pp_j <- ggplot(newdat_m1j, aes(fill = Level, y = Percent, x = JURISDICTION )) +
             size = 3,
             position = position_stack(vjust = 0.5))
 
-
 # Repeat for BASIN
 # New Values for Predictions - Constant at Reference Levels
 bm1_d1 <- levels(surveym1$D1)[1] # reference level 
@@ -787,6 +783,7 @@ newdata_b <- data.frame(
 predicted_probs_b <- cbind(newdata_b, predict(m1, newdata_b, type = "prob"))
 
 newdat_m1b <- melt(predicted_probs_b, id.vars = c("D1", "D2", "D4", "D5","JURISDICTION", "BASIN"), variable.name = "Level", value.name="Probability") # reshape the data
+
 newdat_m1b$Probability[newdat_m1b$Level == "fit.3"] <- newdat_m1b$Probability[newdat_m1b$Level == "fit.3"] / 2 # divide sometimes value into 2
 m1b_duplicate <- newdat_m1b[newdat_m1b$Level == "fit.3", ] # duplicate "sometimes" rows
 newdat_m1b$Probability[newdat_m1b$Level == "fit.1"] <- newdat_m1b$Probability[newdat_m1b$Level == "fit.1"] * -1 # multiple by -1 for negative behaviours
@@ -794,7 +791,7 @@ newdat_m1b$Probability[newdat_m1b$Level == "fit.2"] <- newdat_m1b$Probability[ne
 newdat_m1b$Probability[newdat_m1b$Level == "fit.3"] <- newdat_m1b$Probability[newdat_m1b$Level == "fit.3"] * -1
 newdat_m1b <- rbind(newdat_m1b, m1b_duplicate) # combine data sets
 newdat_m1b$Percent <- newdat_m1b$Probability * 100 # Get percent labels
-newdat_m1b$Percent2 <- newdat_m1b$Percent[newdat_m1b$Percent <= 0] * -1 # Make labels not negative
+newdat_m1b$Percent2 <- abs(newdat_m1b$Percent) # Make labels not negative
 newdat_m1b$Percent2 <- round(newdat_m1b$Percent2)
 
 newdat_m1b$Level <- factor(newdat_m1b$Level, levels = c("fit.1","fit.2", "fit.5","fit.4","fit.3"))
@@ -863,18 +860,37 @@ newdat_bm2 <- melt(predicted_probs_bm2, id.vars = c("D1", "D2", "D4", "D5","JURI
                                                     "Q3", "Q4", "Q6A", "Q9", "Q10B",
                                                     "Q18_B","Q18_swimming", "Q18_boating", "Q18_boarding", "Q18_fishing"), variable.name = "Level", value.name="Probability") # reshape the data
 
-pp_bm2 <- ggplot(newdat_bm2, aes(fill = Level, y = Probability, x = Q18_B)) +
+newdat_bm2$Probability[newdat_bm2$Level == "fit.3"] <- newdat_bm2$Probability[newdat_bm2$Level == "fit.3"] / 2 # divide sometimes value into 2
+bm2_duplicate <- newdat_bm2[newdat_bm2$Level == "fit.3", ] # duplicate "sometimes" rows
+newdat_bm2$Probability[newdat_bm2$Level == "fit.1"] <- newdat_bm2$Probability[newdat_bm2$Level == "fit.1"] * -1 # multiple by -1 for negative behaviours
+newdat_bm2$Probability[newdat_bm2$Level == "fit.2"] <- newdat_bm2$Probability[newdat_bm2$Level == "fit.2"] * -1
+newdat_bm2$Probability[newdat_bm2$Level == "fit.3"] <- newdat_bm2$Probability[newdat_bm2$Level == "fit.3"] * -1
+newdat_bm2 <- rbind(newdat_bm2, bm2_duplicate) # combine data sets
+newdat_bm2$Percent <- newdat_bm2$Probability * 100 # Get percent labels
+newdat_bm2$Percent2 <- abs(newdat_bm2$Percent) # Make labels not negative
+newdat_bm2$Percent2 <- round(newdat_bm2$Percent2)
+
+newdat_bm2$Level <- factor(newdat_bm2$Level, levels = c("fit.1","fit.2", "fit.5","fit.4","fit.3"))
+
+pp_bm2 <- ggplot(newdat_bm2, aes(fill = Level, y = Percent, x = Q18_B )) +
   geom_bar(position = "stack", stat = "identity") +
   labs(
     x = "Engagement with Water Based Recreation",
     y = "Predicted Probability",
-    color = "Level",
-    shape = "Level"
   ) +
+  coord_flip() +
   scale_x_discrete(labels = c("No", "Yes")) + # plot the data
-  scale_fill_discrete_diverging("Green-Brown", labels = c("Never", "Rarely", "Sometimes", "Most of the Time", "Always"),
-                                rev = TRUE,
-                                guide = guide_legend(reverse = TRUE))
+  scale_fill_manual(values = ord_colours, 
+                    breaks = c("fit.5", "fit.4", "fit.3", "fit.2", "fit.1"),
+                    labels = c("Always", "Most of the Time", "Sometimes", "Rarely", "Never")) +
+  scale_color_manual(values = label_colours, guide = "none" ) +
+  scale_y_continuous(breaks = c(-50, 0, 50),
+                     labels = c("50%","0%","50%")) +
+  geom_hline(yintercept = 0) +
+  geom_text(aes(label = paste0(Percent2, "%"), color = Level),
+            size = 3,
+            position = position_stack(vjust = 0.5))
+
 
 # Repeat for Q18_Boating
 # New Values for Predictions - Constant at Reference Levels
@@ -921,18 +937,36 @@ newdat_bbm2 <- melt(predicted_probs_bbm2, id.vars = c("D1", "D2", "D4", "D5","JU
                                                       "Q3", "Q4", "Q6A", "Q9", "Q10B",
                                                       "Q18_B","Q18_swimming", "Q18_boating", "Q18_boarding", "Q18_fishing"), variable.name = "Level", value.name="Probability") # reshape the data
 
-pp_bbm2 <- ggplot(newdat_bbm2, aes(fill = Level, y = Probability, x = Q18_boating)) +
+newdat_bbm2$Probability[newdat_bbm2$Level == "fit.3"] <- newdat_bbm2$Probability[newdat_bbm2$Level == "fit.3"] / 2 # divide sometimes value into 2
+bbm2_duplicate <- newdat_bbm2[newdat_bbm2$Level == "fit.3", ] # duplicate "sometimes" rows
+newdat_bbm2$Probability[newdat_bbm2$Level == "fit.1"] <- newdat_bbm2$Probability[newdat_bbm2$Level == "fit.1"] * -1 # multiple by -1 for negative behaviours
+newdat_bbm2$Probability[newdat_bbm2$Level == "fit.2"] <- newdat_bbm2$Probability[newdat_bbm2$Level == "fit.2"] * -1
+newdat_bbm2$Probability[newdat_bbm2$Level == "fit.3"] <- newdat_bbm2$Probability[newdat_bbm2$Level == "fit.3"] * -1
+newdat_bbm2 <- rbind(newdat_bbm2, bbm2_duplicate) # combine data sets
+newdat_bbm2$Percent <- newdat_bbm2$Probability * 100 # Get percent labels
+newdat_bbm2$Percent2 <- abs(newdat_bbm2$Percent) # Make labels not negative
+newdat_bbm2$Percent2 <- round(newdat_bbm2$Percent2)
+
+newdat_bbm2$Level <- factor(newdat_bbm2$Level, levels = c("fit.1","fit.2", "fit.5","fit.4","fit.3"))
+
+pp_bbm2 <- ggplot(newdat_bbm2, aes(fill = Level, y = Percent, x = Q18_boating)) +
   geom_bar(position = "stack", stat = "identity") +
   labs(
     x = "Engagement with Boat Recreation",
     y = "Predicted Probability",
-    color = "Level",
-    shape = "Level"
   ) +
+  coord_flip() +
   scale_x_discrete(labels = c("No", "Yes")) + # plot the data
-  scale_fill_discrete_diverging("Green-Brown", labels = c("Never", "Rarely", "Sometimes", "Most of the Time", "Always"),
-                                rev = TRUE,
-                                guide = guide_legend(reverse = TRUE))
+  scale_fill_manual(values = ord_colours, 
+                    breaks = c("fit.5", "fit.4", "fit.3", "fit.2", "fit.1"),
+                    labels = c("Always", "Most of the Time", "Sometimes", "Rarely", "Never")) +
+  scale_color_manual(values = label_colours, guide = "none" ) +
+  scale_y_continuous(breaks = c(-50, 0, 50),
+                     labels = c("50%","0%","50%")) +
+  geom_hline(yintercept = 0) +
+  geom_text(aes(label = paste0(Percent2, "%"), color = Level),
+            size = 3,
+            position = position_stack(vjust = 0.5))
 
 # Repeat for Q3 Water Quality Rating
 # New Values for Predictions - Constant at Reference Levels
@@ -986,7 +1020,7 @@ newdat_q3m2$Probability[newdat_q3m2$Level == "fit.2"] <- newdat_q3m2$Probability
 newdat_q3m2$Probability[newdat_q3m2$Level == "fit.3"] <- newdat_q3m2$Probability[newdat_q3m2$Level == "fit.3"] * -1
 newdat_q3m2 <- rbind(newdat_q3m2, q3m2_duplicate) # combine data sets
 newdat_q3m2$Percent <- newdat_q3m2$Probability * 100 # Get percent labels
-newdat_q3m2$Percent <- with(newdat_q3m2, ifelse(Percent <= 0, Percent * -1, Percent * 1)) # Make labels not negative
+newdat_q3m2$Percent <- abs(newdat_q3m2$Percent) # Make labels not negative
 newdat_q3m2$Percent <- round(newdat_q3m2$Percent)
 
 newdat_q3m2$Level <- factor(newdat_q3m2$Level, levels = c("fit.1","fit.2", "fit.5","fit.4","fit.3"))
@@ -1038,7 +1072,6 @@ ggsave("pp_j.pdf", pp_j,
 ggsave("pp_q3m2.pdf", pp_q3m2,
        width = 6,
        height = 6.5,
-
        dpi = 300)
 
 
